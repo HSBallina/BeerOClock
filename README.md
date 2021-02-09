@@ -1,0 +1,2 @@
+# BeerOClock
+Azure function demo
