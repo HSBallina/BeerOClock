@@ -1,7 +1,7 @@
 using System;
 using System.IO;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
+using System.Web.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -20,22 +20,57 @@ namespace BeerOClock
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            var name = req.Query["name"];
+            try
+            {
+                IsItTimeToFail();
+            }
+            catch (Exception e)
+            {
+                log.LogError(e, "I failed my duties.");
 
-            var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
+                var ex = new ApplicationException(e.Message);
+                return new ExceptionResult(ex, true);
+            }
+
+            string name;
+
+            switch (req.Method.ToLowerInvariant())
+            {
+                case "post":
+                    var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+                    dynamic data = JsonConvert.DeserializeObject(requestBody);
+                    name = data?.name;
+                    break;
+                case "get":
+                    name = req.Query["name"];
+                    break;
+                default:
+                    return new BadRequestObjectResult("I don't know what to do with that.");
+            }
+
+            var greeting = string.IsNullOrWhiteSpace(name) ? string.Empty : $"Hi {name}! ";
 
             if (IsItBeerOClock())
             {
-                return new OkObjectResult("It's Friday and past 4:30 pm. Open up the beer!!");
+                return new OkObjectResult($"{greeting}It's Friday and past 4:30 pm. Open up the beer!!");
             }
 
             var waitingTime = HowLongMustWeWait();
 
             var responseMessage =
-                $"It's {waitingTime.Days} days {waitingTime.Hours} hours {waitingTime.Minutes} minutes and {waitingTime.Seconds} seconds until beer o'clock.";
+                $"{greeting}It's {waitingTime.Days} days {waitingTime.Hours} hours {waitingTime.Minutes} minutes and {waitingTime.Seconds} seconds until beer o'clock.";
 
             return new OkObjectResult(responseMessage);
+        }
+
+        private static void IsItTimeToFail()
+        {
+            var r = new Random(DateTime.Now.TimeOfDay.Milliseconds);
+
+            if (r.Next(1, 100) > 92)
+            {
+                throw new ApplicationException("I'm too drunk. Try later...");
+            }
         }
 
         private static bool IsItBeerOClock()
