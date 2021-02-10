@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 
 namespace BeerOClock
 {
-    public static class Function1
+    public static class AfterWork
     {
         [FunctionName("HowLongUntilBeerOClock")]
         public static async Task<IActionResult> Run(
@@ -75,13 +75,13 @@ namespace BeerOClock
 
         private static bool IsItBeerOClock()
         {
-            var now = DateTime.Now;
+            var now = Now();
             return now.DayOfWeek == DayOfWeek.Friday && now.TimeOfDay >= TimeSpan.FromHours(16.5);
         }
 
         private static TimeSpan HowLongMustWeWait()
         {
-            var now = DateTime.Now;
+            var now = Now();
 
             var days = now.DayOfWeek switch
             {
@@ -96,6 +96,11 @@ namespace BeerOClock
             };
 
             return TimeSpan.FromDays(days) + TimeSpan.FromHours(16.5) - now.TimeOfDay;
+        }
+
+        private static DateTime Now()
+        {
+            return TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now.ToUniversalTime(), "W. Europe Standard Time");
         }
     }
 }
