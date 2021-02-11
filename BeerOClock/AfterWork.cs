@@ -65,7 +65,7 @@ namespace BeerOClock
 
         private static void IsItTimeToFail()
         {
-            var r = new Random(DateTime.Now.TimeOfDay.Milliseconds);
+            var r = new Random(666);
 
             if (r.Next(1, 100) > 92)
             {
