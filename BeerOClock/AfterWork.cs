@@ -75,13 +75,13 @@ namespace BeerOClock
 
         private static bool IsItBeerOClock()
         {
-            var now = Now();
+            var now = DateTime.Now;
             return now.DayOfWeek == DayOfWeek.Friday && now.TimeOfDay >= TimeSpan.FromHours(16.5);
         }
 
         private static TimeSpan HowLongMustWeWait()
         {
-            var now = Now();
+            var now = DateTime.Now;
 
             var days = now.DayOfWeek switch
             {
@@ -96,11 +96,6 @@ namespace BeerOClock
             };
 
             return TimeSpan.FromDays(days) + TimeSpan.FromHours(16.5) - now.TimeOfDay;
-        }
-
-        private static DateTime Now()
-        {
-            return TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now.ToUniversalTime(), "W. Europe Standard Time");
         }
     }
 }
